@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>To-Do App</title>
+<style>
+    body {
+        font-family: Arial;
+        background: #0f172a;
+        color: white;
+        text-align: center;
+    }
+    .container {
+        width: 350px;
+        margin: 50px auto;
+        background: #1e293b;
+        padding: 20px;
+        border-radius: 10px;
+    }
+    input, button {
+        width: 90%;
+        padding: 10px;
+        margin: 5px;
+        border-radius: 5px;
+        border: none;
+    }
+    button {
+        background: #38bdf8;
+        cursor: pointer;
+    }
+    li {
+        list-style: none;
+        background: #334155;
+        margin: 5px;
+        padding: 10px;
+        border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+    }
+    .completed {
+        text-decoration: line-through;
+        color: gray;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container" id="loginBox">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+</div>
+
+<div class="container" id="todoBox" style="display:none;">
+    <h2>To-Do List</h2>
+    
+    <input type="text" id="taskInput" placeholder="Task title">
+    <input type="text" id="descInput" placeholder="Description (optional)">
+    <button onclick="addTask()">Add Task</button>
+
+    <h3>Pending Tasks</h3>
+    <ul id="pendingList"></ul>
+
+    <h3>Completed Tasks</h3>
+    <ul id="completedList"></ul>
+
+    <button onclick="logout()">Logout</button>
+</div>
+
+<script>
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+    function login() {
+        let user = document.getElementById("username").value;
+        let pass = document.getElementById("password").value;
+
+        if (user && pass) {
+            localStorage.setItem("user", user);
+            document.getElementById("loginBox").style.display = "none";
+            document.getElementById("todoBox").style.display = "block";
+            renderTasks();
+        } else {
+            alert("Enter username & password");
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem("user");
+        location.reload();
+    }
+
+    function addTask() {
+        let title = document.getElementById("taskInput").value;
+        let desc = document.getElementById("descInput").value;
+
+        if (title === "") return;
+
+        tasks.push({ title, desc, completed: false });
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+
+        document.getElementById("taskInput").value = "";
+        document.getElementById("descInput").value = "";
+
+        renderTasks();
+    }
+
+    function toggleTask(index) {
+        tasks[index].completed = !tasks[index].completed;
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+        renderTasks();
+    }
+
+    function deleteTask(index) {
+        tasks.splice(index, 1);
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+        renderTasks();
+    }
+
+    function renderTasks() {
+        let pendingList = document.getElementById("pendingList");
+        let completedList = document.getElementById("completedList");
+
+        pendingList.innerHTML = "";
+        completedList.innerHTML = "";
+
+        tasks.forEach((task, index) => {
+            let li = document.createElement("li");
+            li.innerHTML = `
+                <span class="${task.completed ? 'completed' : ''}">
+                    ${task.title} <br><small>${task.desc}</small>
+                </span>
+                <div>
+                    <button onclick="toggleTask(${index})">✔</button>
+                    <button onclick="deleteTask(${index})">❌</button>
+                </div>
+            `;
+
+            if (task.completed) {
+                completedList.appendChild(li);
+            } else {
+                pendingList.appendChild(li);
+            }
+        });
+    }
+
+    // Auto login if user exists
+    if (localStorage.getItem("user")) {
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("todoBox").style.display = "block";
+        renderTasks();
+    }
+</script>
+
+</body>
+</html>
